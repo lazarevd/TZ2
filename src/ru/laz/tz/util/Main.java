@@ -27,13 +27,15 @@ public class Main {
     
     
     
-    private static Map<String, Ruble> groupByString(List<String[]> inputData, int keyIdx, int valueIdx) {
+    private static Map<String, Ruble> groupByString(List<String[]> inputData, int keyIdx, int valueIdx, Process proc) {
     	
     	Map<String, Ruble> map = new TreeMap<>();
     	
     	for (String[] input : inputData) {
     	    try {
-                String key = input[keyIdx];
+
+
+                String key = proc.process(input[keyIdx]);
                 Ruble value = Ruble.toRuble(input[valueIdx]);
 
                 if (map.containsKey(key)) {
@@ -76,7 +78,8 @@ public class Main {
 
 		List<String[]> readData = readDataFromFile(operationsFile);
 
-		Map<String, Ruble> dateMap = groupByString(readData, 0, 3);
+        Process proc = (inputStr) -> inputStr.substring(0,10);
+		Map<String, Ruble> dateMap = groupByString(readData, 0, 3, proc);
 
         try (PrintStream ps = new PrintStream(new FileOutputStream(sumsByDaysFile))) {
 
@@ -87,8 +90,8 @@ public class Main {
             System.out.println("Can not write file " + operationsFile);
         }
 
-
-        Map<String, Ruble> officeMap = groupByString(readData, 1, 3);
+        Process proc2 = (inputStr) -> inputStr;
+        Map<String, Ruble> officeMap = groupByString(readData, 1, 3, proc2);
 
         List<Map.Entry<String,Ruble>> sorted = getSortedList(officeMap);
 
