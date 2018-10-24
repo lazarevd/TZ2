@@ -1,4 +1,7 @@
-package ru.laz.tz.util;
+package ru.laz.main;
+
+import ru.laz.tz.util.Process;
+import ru.laz.tz.util.Ruble;
 
 import java.io.*;
 import java.util.*;
