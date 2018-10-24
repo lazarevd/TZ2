@@ -60,7 +60,11 @@ public class Ruble {
     }
     
 
-    
+    public int compareTo(Ruble ruble) {
+       if(this.cent < ruble.getCent()) return -1;
+       else if (this.cent == ruble.getCent()) return 0;
+       else return 1;
+    }
     
     @Override
     public String toString() {

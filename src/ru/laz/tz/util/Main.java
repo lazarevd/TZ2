@@ -1,31 +1,10 @@
 package ru.laz.tz.util;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.io.*;
+import java.util.*;
 
 public class Main {
-	
-	
-	private static class DateComparator implements Comparator<String> {
 
-		@Override
-		public int compare(String a, String b) {
-			LocalDateTime aT = LocalDateTime.parse(a);
-			LocalDateTime bT = LocalDateTime.parse(b);
-			
-			
-			return 0;
-		}
-		
-	}
 	
 	
     private static List<String[]> readDataFromFile(String inputFileName) {
@@ -48,35 +27,79 @@ public class Main {
     
     
     
-    public static Map<String, Ruble> groupByDate(List<String[]> inputData, int dateIdx, int valueIdx) {
+    private static Map<String, Ruble> groupByString(List<String[]> inputData, int keyIdx, int valueIdx) {
     	
-    	Map<String, Ruble> dateMap = new TreeMap<String, Ruble>();
+    	Map<String, Ruble> map = new TreeMap<>();
     	
     	for (String[] input : inputData) {
-    		String date = input[dateIdx];
-    		Ruble value = Ruble.toRuble(input[valueIdx]);
-    		
-    		if (dateMap.containsKey(date)) {
-    			Ruble rub = dateMap.get(date);
-    			rub = rub.addRuble(value);
-    			dateMap.put(date, rub);
-    		} else {
-    			dateMap.put(date, value);
-    		}
+    	    try {
+                String key = input[keyIdx];
+                Ruble value = Ruble.toRuble(input[valueIdx]);
+
+                if (map.containsKey(key)) {
+                    Ruble rub = map.get(key);
+                    rub = rub.addRuble(value);
+                    map.put(key, rub);
+                } else {
+                    map.put(key, value);
+                }
+            } catch (IllegalArgumentException e) {
+    	        System.out.println("WARN: "+ input + " has wrong ruble string");
+            }
     	}
     	
-    	return dateMap;
+    	return map;
     }
-    
+
+
+    public static List<Map.Entry<String, Ruble>> getSortedList(Map<String, Ruble> map) {
+        ArrayList<Map.Entry<String, Ruble>> al = new ArrayList(map.entrySet());
+
+	    al.sort((r1,r2) -> {
+                return r1.getValue().compareTo(r2.getValue());
+            }
+        );
+
+	    return al;
+    }
+
+
+
+
+
 
 	public static void main(String[] args) {
-		
-		List<String[]> readData = readDataFromFile(System.getProperty("user.dir") +"/etc/operations.txt");
-		
-		
-		Map<String, Ruble> map = groupByDate(readData, 0, 3);
-		
 
+        String operationsFile = args[0];
+        String sumsByDaysFile = args[1];
+        String sumsByOfficesFile = args[2];
+
+		List<String[]> readData = readDataFromFile(operationsFile);
+
+		Map<String, Ruble> dateMap = groupByString(readData, 0, 3);
+
+        try (PrintStream ps = new PrintStream(new FileOutputStream(sumsByDaysFile))) {
+
+            for (Map.Entry entry : dateMap.entrySet()) {
+                ps.println(entry.getKey() + "\t" + entry.getValue());
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("Can not write file " + operationsFile);
+        }
+
+
+        Map<String, Ruble> officeMap = groupByString(readData, 1, 3);
+
+        List<Map.Entry<String,Ruble>> sorted = getSortedList(officeMap);
+
+        try (PrintStream ps = new PrintStream(new FileOutputStream(sumsByOfficesFile))) {
+
+            for (Map.Entry entry : sorted) {
+                ps.println(entry.getKey() + "\t" + entry.getValue());
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("Can not write file " + operationsFile);
+        }
 	}
 
 }
